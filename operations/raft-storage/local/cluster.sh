@@ -28,23 +28,23 @@ function vault_to_network_address {
 
   case "$vault_node_name" in
     vault_1)
-      echo "http://127.0.0.1:8200"
+      echo "http://127.0.0.1:8100"
       ;;
     vault_2)
       echo "http://127.0.0.2:8200"
       ;;
     vault_3)
-      echo "http://127.0.0.3:8200"
+      echo "http://127.0.0.3:8300"
       ;;
     vault_4)
-      echo "http://127.0.0.4:8200"
+      echo "http://127.0.0.4:8300"
       ;;
   esac
 }
 
 # Create a helper function to address the first vault node
 function vault_1 {
-    (export VAULT_ADDR=http://127.0.0.1:8200 && vault "$@")
+    (export VAULT_ADDR=http://127.0.0.1:8100 && vault "$@")
 }
 
 # Create a helper function to address the second vault node
@@ -54,12 +54,12 @@ function vault_2 {
 
 # Create a helper function to address the third vault node
 function vault_3 {
-    (export VAULT_ADDR=http://127.0.0.3:8200 && vault "$@")
+    (export VAULT_ADDR=http://127.0.0.3:8300 && vault "$@")
 }
 
 # Create a helper function to address the fourth vault node
 function vault_4 {
-    (export VAULT_ADDR=http://127.0.0.4:8200 && vault "$@")
+    (export VAULT_ADDR=http://127.0.0.4:8300 && vault "$@")
 }
 
 function stop_vault {
@@ -202,15 +202,15 @@ function clean {
     fi
   done
 
-  for config_file in $demo_home/config-vault_1.hcl $demo_home/config-vault_2.hcl $demo_home/config-vault_3.hcl $demo_home/config-vault_4.hcl ; do
-    if [[ -f "$config_file" ]] ; then
-      printf "\n%s" \
-        "Removing configuration file $config_file"
+  # for config_file in $demo_home/config-vault_1.hcl $demo_home/config-vault_2.hcl $demo_home/config-vault_3.hcl $demo_home/config-vault_4.hcl ; do
+  #   if [[ -f "$config_file" ]] ; then
+  #     printf "\n%s" \
+  #       "Removing configuration file $config_file"
 
-      rm "$config_file"
-      printf "\n"
-    fi
-  done
+  #     rm "$config_file"
+  #     printf "\n"
+  #   fi
+  # done
 
   for raft_storage in $demo_home/raft-vault_2 $demo_home/raft-vault_3 $demo_home/raft-vault_4 ; do
     if [[ -d "$raft_storage" ]] ; then
@@ -348,119 +348,119 @@ function create_network {
 
 function create_config {
 
-  printf "\n%s" \
-    "[vault_1] Creating configuration" \
-    "  - creating $demo_home/config-vault_1.hcl"
+#   printf "\n%s" \
+#     "[vault_1] Creating configuration" \
+#     "  - creating $demo_home/config-vault_1.hcl"
 
-  rm -f config-vault_1.hcl
+#   rm -f config-vault_1.hcl
 
-  tee "$demo_home"/config-vault_1.hcl 1> /dev/null <<EOF
-    storage "inmem" {}
-    listener "tcp" {
-      address = "127.0.0.1:8200"
-      tls_disable = true
-    }
-    disable_mlock = true
-EOF
+#   tee "$demo_home"/config-vault_1.hcl 1> /dev/null <<EOF
+#     storage "inmem" {}
+#     listener "tcp" {
+#       address = "127.0.0.1:8200"
+#       tls_disable = true
+#     }
+#     disable_mlock = true
+# EOF
 
   printf "\n%s" \
     "[vault_2] Creating configuration" \
     "  - creating $demo_home/config-vault_2.hcl" \
     "  - creating $demo_home/raft-vault_2"
 
-  rm -f config-vault_2.hcl
+#  rm -f config-vault_2.hcl
   rm -rf "$demo_home"/raft-vault_2
   mkdir -pm 0755 "$demo_home"/raft-vault_2
 
-  tee "$demo_home"/config-vault_2.hcl 1> /dev/null <<EOF
-  storage "raft" {
-    path    = "$demo_home/raft-vault_2/"
-    node_id = "vault_2"
-  }
-  listener "tcp" {
-    address = "127.0.0.2:8200"
-    cluster_address = "127.0.0.2:8201"
-    tls_disable = true
-  }
-  seal "transit" {
-    address            = "http://127.0.0.1:8200"
-    # token is read from VAULT_TOKEN env
-    # token              = ""
-    disable_renewal    = "false"
+#   tee "$demo_home"/config-vault_2.hcl 1> /dev/null <<EOF
+#   storage "raft" {
+#     path    = "$demo_home/raft-vault_2/"
+#     node_id = "vault_2"
+#   }
+#   listener "tcp" {
+#     address = "127.0.0.2:8200"
+#     cluster_address = "127.0.0.2:8201"
+#     tls_disable = true
+#   }
+#   seal "transit" {
+#     address            = "http://127.0.0.1:8200"
+#     # token is read from VAULT_TOKEN env
+#     # token              = ""
+#     disable_renewal    = "false"
 
-    // Key configuration
-    key_name           = "unseal_key"
-    mount_path         = "transit/"
-  }
-  disable_mlock = true
-  cluster_addr = "http://127.0.0.2:8201"
-EOF
+#     // Key configuration
+#     key_name           = "unseal_key"
+#     mount_path         = "transit/"
+#   }
+#   disable_mlock = true
+#   cluster_addr = "http://127.0.0.2:8201"
+# EOF
 
   printf "\n%s" \
     "[vault_3] Creating configuration" \
     "  - creating $demo_home/config-vault_3.hcl" \
     "  - creating $demo_home/raft-vault_3"
 
-  rm -f config-vault_3.hcl
+#  rm -f config-vault_3.hcl
   rm -rf "$demo_home"/raft-vault_3
   mkdir -pm 0755 "$demo_home"/raft-vault_3
 
-  tee "$demo_home"/config-vault_3.hcl 1> /dev/null <<EOF
-  storage "raft" {
-    path    = "$demo_home/raft-vault_3/"
-    node_id = "vault_3"
-  }
-  listener "tcp" {
-    address = "127.0.0.3:8200"
-    cluster_address = "127.0.0.3:8201"
-    tls_disable = true
-  }
-  seal "transit" {
-    address            = "http://127.0.0.1:8200"
-    # token is read from VAULT_TOKEN env
-    # token              = ""
-    disable_renewal    = "false"
+#   tee "$demo_home"/config-vault_3.hcl 1> /dev/null <<EOF
+#   storage "raft" {
+#     path    = "$demo_home/raft-vault_3/"
+#     node_id = "vault_3"
+#   }
+#   listener "tcp" {
+#     address = "127.0.0.3:8200"
+#     cluster_address = "127.0.0.3:8201"
+#     tls_disable = true
+#   }
+#   seal "transit" {
+#     address            = "http://127.0.0.1:8200"
+#     # token is read from VAULT_TOKEN env
+#     # token              = ""
+#     disable_renewal    = "false"
 
-    // Key configuration
-    key_name           = "unseal_key"
-    mount_path         = "transit/"
-  }
-  disable_mlock = true
-  cluster_addr = "http://127.0.0.3:8201"
-EOF
+#     // Key configuration
+#     key_name           = "unseal_key"
+#     mount_path         = "transit/"
+#   }
+#   disable_mlock = true
+#   cluster_addr = "http://127.0.0.3:8201"
+# EOF
 
   printf "\n%s" \
     "[vault_4] Creating configuration" \
     "  - creating $demo_home/config-vault_4.hcl" \
     "  - creating $demo_home/raft-vault_4"
 
-  rm -f config-vault_4.hcl
+#  rm -f config-vault_4.hcl
   rm -rf "$demo_home"/raft-vault_4
   mkdir -pm 0755 "$demo_home"/raft-vault_4
 
-  tee "$demo_home"/config-vault_4.hcl 1> /dev/null <<EOF
-  storage "raft" {
-    path    = "$demo_home/raft-vault_4/"
-    node_id = "vault_4"
-  }
-  listener "tcp" {
-    address = "127.0.0.4:8200"
-    cluster_address = "127.0.0.4:8201"
-    tls_disable = true
-  }
-  seal "transit" {
-    address            = "http://127.0.0.1:8200"
-    # token is read from VAULT_TOKEN env
-    # token              = ""
-    disable_renewal    = "false"
+#   tee "$demo_home"/config-vault_4.hcl 1> /dev/null <<EOF
+#   storage "raft" {
+#     path    = "$demo_home/raft-vault_4/"
+#     node_id = "vault_4"
+#   }
+#   listener "tcp" {
+#     address = "127.0.0.4:8200"
+#     cluster_address = "127.0.0.4:8201"
+#     tls_disable = true
+#   }
+#   seal "transit" {
+#     address            = "http://127.0.0.1:8200"
+#     # token is read from VAULT_TOKEN env
+#     # token              = ""
+#     disable_renewal    = "false"
 
-    // Key configuration
-    key_name           = "unseal_key"
-    mount_path         = "transit/"
-  }
-  disable_mlock = true
-  cluster_addr = "http://127.0.0.4:8201"
-EOF
+#     // Key configuration
+#     key_name           = "unseal_key"
+#     mount_path         = "transit/"
+#   }
+#   disable_mlock = true
+#   cluster_addr = "http://127.0.0.4:8201"
+# EOF
   printf "\n"
 }
 
